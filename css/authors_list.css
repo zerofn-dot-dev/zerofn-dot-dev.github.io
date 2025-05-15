@@ -19,6 +19,7 @@ body:not(.dark) .author-card {
 }
 
 .author-image {
+  background-color: white;
   width: 80px;
   height: 80px;
   object-fit: cover;

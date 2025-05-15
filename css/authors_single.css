@@ -1,0 +1,30 @@
+.icon-dark,
+.icon-light {
+  width: 40px;
+  height: 40px;
+  /* border-radius: 50%; */
+  display: none;
+}
+
+body.dark .icon-dark {
+  display: inline;
+}
+
+body:not(.dark) .icon-light {
+  display: inline;
+}
+
+.fallback-icon {
+  width: 40px;
+  height: 40px;
+  background-color: LightGray;
+  border-radius: 25%;
+  display: inline-block;
+  text-align: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+body.dark .fallback-icon {
+  background-color: black;
+}
