@@ -7,7 +7,8 @@
 .author-card {
   display: flex;
   align-items: center;
-  background-color: black;
+  /* background-color: black; */
+  background-color: #2F2E33;
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -38,6 +39,9 @@ body:not(.dark) .author-card {
 
 .author-bio {
   margin: 0.2rem 0 0;
-  color: #555;
+  color: #9C9BA0;
 }
 
+body:not(.dark) .author-bio {
+  color: black;
+}
