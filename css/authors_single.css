@@ -4,6 +4,7 @@
   height: 40px;
   /* border-radius: 50%; */
   display: none;
+  vertical-align: top;
 }
 
 body.dark .icon-dark {
@@ -17,14 +18,18 @@ body:not(.dark) .icon-light {
 .fallback-icon {
   width: 40px;
   height: 40px;
-  background-color: LightGray;
+  background-color: Black;
+  color: white;
   border-radius: 25%;
   display: inline-block;
   text-align: center;
   padding-top: 5px;
   padding-bottom: 5px;
+  margin: 0;
+  vertical-align: top;
 }
 
 body.dark .fallback-icon {
-  background-color: black;
+  background-color: white;
+  color: black;
 }
