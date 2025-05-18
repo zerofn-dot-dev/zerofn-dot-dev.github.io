@@ -6,14 +6,15 @@
     <description>Recent content in Posts on ZeroFN.Dev</description>
     <generator>Hugo -- 0.147.2</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 08 May 2025 22:00:32 -0400</lastBuildDate>
+    <lastBuildDate>Sat, 17 May 2025 18:11:00 -0400</lastBuildDate>
     <atom:link href="https://zerofn-dot-dev.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>My First Post</title>
-      <link>https://zerofn-dot-dev.github.io/posts/my-first-post/</link>
-      <pubDate>Thu, 08 May 2025 22:00:32 -0400</pubDate>
-      <guid>https://zerofn-dot-dev.github.io/posts/my-first-post/</guid>
-      <description>&lt;p&gt;Wow!&lt;/p&gt;</description>
+      <title>Leveraging Apache Kafka for PostgreSQL Inserts</title>
+      <link>https://zerofn-dot-dev.github.io/posts/kafka-postgresql/</link>
+      <pubDate>Sat, 17 May 2025 18:11:00 -0400</pubDate>
+      <guid>https://zerofn-dot-dev.github.io/posts/kafka-postgresql/</guid>
+      <description>&lt;p&gt;If you&amp;rsquo;ve ever built a web application where you have your UI that talks to a backend microservice, you know how important it is to capture and store event data for logging/auditing purposes. While storing this data directly in PostgreSQL works, it can become a bottleneck in the pipeline. Writing to a database can be slow, especially under high load, and forces you to write SQL to persist events.&lt;/p&gt;
+&lt;p&gt;A faster alternative is to push data into an Apache Kafka topic. Kafka is meant for high-throughput, low-latency event streaming, which is perfect for capturing data quickly without worrying about persistence overhead. What if you still need that data in PostgreSQL for logging, auditing, or analytics? That&amp;rsquo;s where Kafka Connect comes in! Kafka Connect can be used to create a sink from a topic to a PostgreSQL table. Are there any drawbacks to this solution? Short answer: yes! The rest of this post will serve as a long answer. Are these drawbacks enough to dissuade one from using this solution?&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

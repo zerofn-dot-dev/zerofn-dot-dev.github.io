@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Leveraging Apache Kafka for PostgreSQL Inserts | ZeroFN.Dev</title>
+<meta name="keywords" content="">
+<meta name="description" content="If you&rsquo;ve ever built a web application where you have your UI that talks to a backend microservice, you know how important it is to capture and store event data for logging/auditing purposes. While storing this data directly in PostgreSQL works, it can become a bottleneck in the pipeline. Writing to a database can be slow, especially under high load, and forces you to write SQL to persist events.
+A faster alternative is to push data into an Apache Kafka topic. Kafka is meant for high-throughput, low-latency event streaming, which is perfect for capturing data quickly without worrying about persistence overhead. What if you still need that data in PostgreSQL for logging, auditing, or analytics? That&rsquo;s where Kafka Connect comes in! Kafka Connect can be used to create a sink from a topic to a PostgreSQL table. Are there any drawbacks to this solution? Short answer: yes! The rest of this post will serve as a long answer. Are these drawbacks enough to dissuade one from using this solution?">
+<meta name="author" content="Michael Amaya">
+<link rel="canonical" href="https://zerofn-dot-dev.github.io/posts/kafka-postgresql/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.f49d66caae9ea0fd43f21f29e71a8d3e284517ed770f2aa86fa012953ad3c9ef.css" integrity="sha256-9J1myq6eoP1D8h8p5xqNPihFF&#43;13Dyqob6ASlTrTye8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://zerofn-dot-dev.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zerofn-dot-dev.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zerofn-dot-dev.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zerofn-dot-dev.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zerofn-dot-dev.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://zerofn-dot-dev.github.io/posts/kafka-postgresql/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:url" content="https://zerofn-dot-dev.github.io/posts/kafka-postgresql/">
+  <meta property="og:site_name" content="ZeroFN.Dev">
+  <meta property="og:title" content="Leveraging Apache Kafka for PostgreSQL Inserts">
+  <meta property="og:description" content="If you’ve ever built a web application where you have your UI that talks to a backend microservice, you know how important it is to capture and store event data for logging/auditing purposes. While storing this data directly in PostgreSQL works, it can become a bottleneck in the pipeline. Writing to a database can be slow, especially under high load, and forces you to write SQL to persist events.
+A faster alternative is to push data into an Apache Kafka topic. Kafka is meant for high-throughput, low-latency event streaming, which is perfect for capturing data quickly without worrying about persistence overhead. What if you still need that data in PostgreSQL for logging, auditing, or analytics? That’s where Kafka Connect comes in! Kafka Connect can be used to create a sink from a topic to a PostgreSQL table. Are there any drawbacks to this solution? Short answer: yes! The rest of this post will serve as a long answer. Are these drawbacks enough to dissuade one from using this solution?">
+  <meta property="og:locale" content="en-us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-05-17T18:11:00-04:00">
+    <meta property="article:modified_time" content="2025-05-17T18:11:00-04:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Leveraging Apache Kafka for PostgreSQL Inserts">
+<meta name="twitter:description" content="If you&rsquo;ve ever built a web application where you have your UI that talks to a backend microservice, you know how important it is to capture and store event data for logging/auditing purposes. While storing this data directly in PostgreSQL works, it can become a bottleneck in the pipeline. Writing to a database can be slow, especially under high load, and forces you to write SQL to persist events.
+A faster alternative is to push data into an Apache Kafka topic. Kafka is meant for high-throughput, low-latency event streaming, which is perfect for capturing data quickly without worrying about persistence overhead. What if you still need that data in PostgreSQL for logging, auditing, or analytics? That&rsquo;s where Kafka Connect comes in! Kafka Connect can be used to create a sink from a topic to a PostgreSQL table. Are there any drawbacks to this solution? Short answer: yes! The rest of this post will serve as a long answer. Are these drawbacks enough to dissuade one from using this solution?">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zerofn-dot-dev.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Leveraging Apache Kafka for PostgreSQL Inserts",
+      "item": "https://zerofn-dot-dev.github.io/posts/kafka-postgresql/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Leveraging Apache Kafka for PostgreSQL Inserts",
+  "name": "Leveraging Apache Kafka for PostgreSQL Inserts",
+  "description": "If you\u0026rsquo;ve ever built a web application where you have your UI that talks to a backend microservice, you know how important it is to capture and store event data for logging/auditing purposes. While storing this data directly in PostgreSQL works, it can become a bottleneck in the pipeline. Writing to a database can be slow, especially under high load, and forces you to write SQL to persist events.\nA faster alternative is to push data into an Apache Kafka topic. Kafka is meant for high-throughput, low-latency event streaming, which is perfect for capturing data quickly without worrying about persistence overhead. What if you still need that data in PostgreSQL for logging, auditing, or analytics? That\u0026rsquo;s where Kafka Connect comes in! Kafka Connect can be used to create a sink from a topic to a PostgreSQL table. Are there any drawbacks to this solution? Short answer: yes! The rest of this post will serve as a long answer. Are these drawbacks enough to dissuade one from using this solution?\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "If you’ve ever built a web application where you have your UI that talks to a backend microservice, you know how important it is to capture and store event data for logging/auditing purposes. While storing this data directly in PostgreSQL works, it can become a bottleneck in the pipeline. Writing to a database can be slow, especially under high load, and forces you to write SQL to persist events.\nA faster alternative is to push data into an Apache Kafka topic. Kafka is meant for high-throughput, low-latency event streaming, which is perfect for capturing data quickly without worrying about persistence overhead. What if you still need that data in PostgreSQL for logging, auditing, or analytics? That’s where Kafka Connect comes in! Kafka Connect can be used to create a sink from a topic to a PostgreSQL table. Are there any drawbacks to this solution? Short answer: yes! The rest of this post will serve as a long answer. Are these drawbacks enough to dissuade one from using this solution?\nFirst and foremost, let’s talk about some of the drawbacks. The first drawback is that Kafka topics use space. This can be easily remedied by adding retention limits (e.g., retain 10 seconds, 1mb max) when creating the topic. Another drawback is limited error handling. If a record fails, the connector within Kafka Connect can crash and stop syncing entirely! However, this can be fixed by setting some error tolerance settings and configuring dead letter queues. Complexity is also another drawback. Setting up a connector per table, formatting inserts properly, and setting up a dead letter queue is not trivial and can add time when creating an application. However, it really is a do-once kind of thing. However, the biggest drawback is latency. How fast can Kafka Connect put my data into a table? That is not a very easy question to answer. It depends on database load and on Kafka Connect itself.\nTo do some latency testing, I wrote some code and uploaded it to a GitHub repository. For fast topic inserts, I used the IBM Sarama library for Golang, which is one of the faster libraries I’ve seen for inserting into Kafka topics in Go. For querying PostgreSQL, I used JackC’s pgx library. I created a single topic called test_topic and a table called test_topic_table that accepted two values: an id of type varchar and a value of type varchar. Setting up the connector is quite simple. I used the following configuration for my tests:\nkafkaConnectPayload := map[string]interface{}{ \"name\": eachTopic.(string) + \"-connector\", \"config\": map[string]interface{}{ \"connector.class\": \"io.confluent.connect.jdbc.JdbcSinkConnector\", \"tasks.max\": \"1\", \"topics\": \"test_topic\", \"connection.url\": \"jdbc:postgresql://\" + \"postgres:5432\" + \"/\" + PsqlDBSet, \"connection.user\": PsqlUserSet, \"connection.password\": PsqlPassSet, \"auto.create\": \"false\", \"auto.evolve\": \"false\", \"insert.mode\": insertMode, \"table.name.format\": \"test_topic_table\", \"value.converter\": \"org.apache.kafka.connect.json.JsonConverter\", \"value.converter.schemas.enable\": \"true\", \"key.converter\": \"org.apache.kafka.connect.json.JsonConverter\", \"key.converter.schemas.enable\": \"true\", \"delete.enabled\": \"true\", \"delete.key.fields\": \"id\", \"poll.interval.ms\": (100 * time.Millisecond).Milliseconds(), }, } To put it simply, the connector will poll test_topic every 100 milliseconds and insert into test_topic_table. My test scenario is simple: Insert into the Kafka topic, then, time how long it takes to show up in the PostgreSQL table. I wrote a script that would create the topic, table, and connector. Then it would run the test, and then delete all three to start from scratch again. My script did this in a loop 10,000 times and wrote the results to a file. The results are quite staggering:\nCount : 10,000 Mean : 38.66768 ms Median : 31.30675 ms Stdev : 36.67882 ms Min : 15.79787 ms Max : 679.68837 ms Timeouts : 60 It seems to be quite inconsistent. For the most part, it took around 39 milliseconds to insert. However, there is a lot of variability. In the box plot, there are 852/10,000 outliers. Wow! That means there’s an 8.52% chance that it will take longer than 39 milliseconds, up to 700 milliseconds. Let’s talk about timeouts. What constitutes a timeout? There are times when the connector reports an “OK” status, but the message never gets to PostgreSQL. I had it report a timeout if the time exceeded three seconds. There were 60/10,000 timeouts, which is a staggering 0.6% failure rate!\nLet’s get back to the question: Are the drawbacks enough to dissaude one from using this solution? The answer: it depends. If you are using this as the backend infrastructure for your web app on all communications (e.g., logins, signups, new database entry), then this is NOT a good solution for you. It’s not consistently fast, and the timeouts mean that you may miss some crucial data! If you are using this to log metrics, then it can be a good solution. In the latter scenario, it may be okay to lose some values, and it’s okay for it to be a little slow. Though it all depends on the use case.\n",
+  "wordCount" : "793",
+  "inLanguage": "en",
+  "datePublished": "2025-05-17T18:11:00-04:00",
+  "dateModified": "2025-05-17T18:11:00-04:00",
+  "author":[{
+    "@type": "Person",
+    "name": "Michael Amaya"
+  }],
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zerofn-dot-dev.github.io/posts/kafka-postgresql/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ZeroFN.Dev",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zerofn-dot-dev.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://zerofn-dot-dev.github.io/" accesskey="h" title="ZeroFN.Dev (Alt + H)">ZeroFN.Dev</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://zerofn-dot-dev.github.io/authors/" title="Authors">
+                    <span>Authors</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Leveraging Apache Kafka for PostgreSQL Inserts
+    </h1>
+    <div class="post-meta"><span title='2025-05-17 18:11:00 -0400 EDT'>May 17, 2025</span>&nbsp;·&nbsp;Michael Amaya
+
+</div>
+  </header> 
+  <div class="post-content"><p>If you&rsquo;ve ever built a web application where you have your UI that talks to a backend microservice, you know how important it is to capture and store event data for logging/auditing purposes. While storing this data directly in PostgreSQL works, it can become a bottleneck in the pipeline. Writing to a database can be slow, especially under high load, and forces you to write SQL to persist events.</p>
+<p>A faster alternative is to push data into an Apache Kafka topic. Kafka is meant for high-throughput, low-latency event streaming, which is perfect for capturing data quickly without worrying about persistence overhead. What if you still need that data in PostgreSQL for logging, auditing, or analytics? That&rsquo;s where Kafka Connect comes in! Kafka Connect can be used to create a sink from a topic to a PostgreSQL table. Are there any drawbacks to this solution? Short answer: yes! The rest of this post will serve as a long answer. Are these drawbacks enough to dissuade one from using this solution?</p>
+<p>First and foremost, let&rsquo;s talk about some of the drawbacks. The first drawback is that Kafka topics use space. This can be easily remedied by adding retention limits (e.g., retain 10 seconds, 1mb max) when creating the topic. Another drawback is limited error handling. If a record fails, the connector within Kafka Connect can crash and stop syncing entirely! However, this can be fixed by setting some error tolerance settings and configuring dead letter queues. Complexity is also another drawback. Setting up a connector per table, formatting inserts properly, and setting up a dead letter queue is not trivial and can add time when creating an application. However, it really is a do-once kind of thing. However, the biggest drawback is latency. How fast can Kafka Connect put my data into a table? That is not a very easy question to answer. It depends on database load and on Kafka Connect itself.</p>
+<p>To do some latency testing, I wrote some code and uploaded it to a <a href="https://github.com/zerofn-dot-dev/Kafka-PostgreSQL-Timing-Test">GitHub repository</a>. For fast topic inserts, I used the <a href="https://github.com/IBM/sarama">IBM Sarama</a> library for Golang, which is one of the faster libraries I&rsquo;ve seen for inserting into Kafka topics in Go. For querying PostgreSQL, I used <a href="https://github.com/jackc/pgx">JackC&rsquo;s pgx library</a>. I created a single topic called test_topic and a table called test_topic_table that accepted two values: an id of type varchar and a value of type varchar. Setting up the connector is quite simple. I used the following configuration for my tests:</p>
+<pre><code>kafkaConnectPayload := map[string]interface{}{
+	&quot;name&quot;: eachTopic.(string) + &quot;-connector&quot;,
+	&quot;config&quot;: map[string]interface{}{
+	&quot;connector.class&quot;:                &quot;io.confluent.connect.jdbc.JdbcSinkConnector&quot;,
+	&quot;tasks.max&quot;:                      &quot;1&quot;,
+	&quot;topics&quot;:                         &quot;test_topic&quot;,
+	&quot;connection.url&quot;:                 &quot;jdbc:postgresql://&quot; + &quot;postgres:5432&quot; + &quot;/&quot; + PsqlDBSet,
+	&quot;connection.user&quot;:                PsqlUserSet,
+	&quot;connection.password&quot;:            PsqlPassSet,
+	&quot;auto.create&quot;:                    &quot;false&quot;,
+	&quot;auto.evolve&quot;:                    &quot;false&quot;,
+	&quot;insert.mode&quot;:                    insertMode,
+	&quot;table.name.format&quot;:              &quot;test_topic_table&quot;,
+	&quot;value.converter&quot;:                &quot;org.apache.kafka.connect.json.JsonConverter&quot;,
+	&quot;value.converter.schemas.enable&quot;: &quot;true&quot;,
+	&quot;key.converter&quot;:                  &quot;org.apache.kafka.connect.json.JsonConverter&quot;,
+	&quot;key.converter.schemas.enable&quot;:   &quot;true&quot;,
+ 	&quot;delete.enabled&quot;:                 &quot;true&quot;,
+	&quot;delete.key.fields&quot;:              &quot;id&quot;,
+	&quot;poll.interval.ms&quot;:               (100 * time.Millisecond).Milliseconds(),
+ 	},
+}
+</code></pre>
+<p>To put it simply, the connector will poll test_topic every 100 milliseconds and insert into test_topic_table. My test scenario is simple: Insert into the Kafka topic, then, time how long it takes to show up in the PostgreSQL table. I wrote a script that would create the topic, table, and connector. Then it would run the test, and then delete all three to start from scratch again. My script did this in a loop 10,000 times and wrote the results to a file. The results are quite staggering:</p>
+<pre><code>Count     : 10,000
+Mean      : 38.66768 ms
+Median    : 31.30675 ms
+Stdev     : 36.67882 ms
+Min       : 15.79787 ms
+Max       : 679.68837 ms
+Timeouts  : 60
+</code></pre>
+<p><img alt="Data distribution" loading="lazy" src="/images/psql_kafka_connect_data_distribution.png" title="Data distribution">
+<img alt="Boxplot" loading="lazy" src="/images/psql_kafka_connect_boxplot.png" title="Boxplot"></p>
+<p>It seems to be quite inconsistent. For the most part, it took around 39 milliseconds to insert. However, there is a lot of variability. In the box plot, there are 852/10,000 outliers. Wow! That means there&rsquo;s an 8.52% chance that it will take longer than 39 milliseconds, up to 700 milliseconds. Let&rsquo;s talk about timeouts. What constitutes a timeout? There are times when the connector reports an &ldquo;OK&rdquo; status, but the message never gets to PostgreSQL. I had it report a timeout if the time exceeded three seconds. There were 60/10,000 timeouts, which is a staggering 0.6% failure rate!</p>
+<p>Let&rsquo;s get back to the question: Are the drawbacks enough to dissaude one from using this solution? The answer: <em>it depends</em>. If you are using this as the backend infrastructure for your web app on all communications (e.g., logins, signups, new database entry), then this is NOT a good solution for you. It&rsquo;s not consistently fast, and the timeouts mean that you may miss some crucial data! If you are using this to log metrics, then it can be a good solution. In the latter scenario, it may be okay to lose some values, and it&rsquo;s okay for it to be a little slow. Though it all depends on the use case.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://zerofn-dot-dev.github.io/">ZeroFN.Dev</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

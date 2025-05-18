@@ -139,15 +139,16 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">My First Post
+    <h2 class="entry-hint-parent">Leveraging Apache Kafka for PostgreSQL Inserts
     </h2>
   </header>
   <div class="entry-content">
-    <p>Wow!
-</p>
+    <p>If you’ve ever built a web application where you have your UI that talks to a backend microservice, you know how important it is to capture and store event data for logging/auditing purposes. While storing this data directly in PostgreSQL works, it can become a bottleneck in the pipeline. Writing to a database can be slow, especially under high load, and forces you to write SQL to persist events.
+A faster alternative is to push data into an Apache Kafka topic. Kafka is meant for high-throughput, low-latency event streaming, which is perfect for capturing data quickly without worrying about persistence overhead. What if you still need that data in PostgreSQL for logging, auditing, or analytics? That’s where Kafka Connect comes in! Kafka Connect can be used to create a sink from a topic to a PostgreSQL table. Are there any drawbacks to this solution? Short answer: yes! The rest of this post will serve as a long answer. Are these drawbacks enough to dissuade one from using this solution?
+...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-05-08 22:00:32 -0400 EDT'>May 8, 2025</span>&nbsp;·&nbsp;Michael Amaya</footer>
-  <a class="entry-link" aria-label="post link to My First Post" href="https://zerofn-dot-dev.github.io/posts/my-first-post/"></a>
+  <footer class="entry-footer"><span title='2025-05-17 18:11:00 -0400 EDT'>May 17, 2025</span>&nbsp;·&nbsp;Michael Amaya</footer>
+  <a class="entry-link" aria-label="post link to Leveraging Apache Kafka for PostgreSQL Inserts" href="https://zerofn-dot-dev.github.io/posts/kafka-postgresql/"></a>
 </article>
     </main>
     
