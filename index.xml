@@ -4,7 +4,7 @@
     <title>ZeroFN.Dev</title>
     <link>https://zerofn-dot-dev.github.io/</link>
     <description>Recent content on ZeroFN.Dev</description>
-    <generator>Hugo -- 0.147.2</generator>
+    <generator>Hugo -- 0.147.3</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 17 May 2025 18:11:00 -0400</lastBuildDate>
     <atom:link href="https://zerofn-dot-dev.github.io/index.xml" rel="self" type="application/rss+xml" />
@@ -41,7 +41,8 @@
       <link>https://zerofn-dot-dev.github.io/authors/nathaniel-wilson/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>https://zerofn-dot-dev.github.io/authors/nathaniel-wilson/</guid>
-      <description>&lt;p&gt;This is where content would go&lt;/p&gt;</description>
+      <description>&lt;h3 id=&#34;hi-my-name-is-nathaniel-wilson&#34;&gt;Hi, My name is Nathaniel Wilson&lt;/h3&gt;
+&lt;p&gt;Experienced engineer with over 17 years in software development and 10+ years in systems engineering, bringing a strong foundation in designing, building, and maintaining complex, high-performance systems. Passionate about technology, lifelong learning, and cybersecurity, with a proven track record of adapting to emerging trends and solving challenging technical problems. Combines deep technical expertise with a strategic mindset to deliver robust, scalable solutions across diverse environments.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
